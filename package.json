@@ -1,0 +1,45 @@
+{
+  "name": "jsonserv",
+  "version": "1.0.0",
+  "description": "Instant REST API from JSON files — like json-server but in Go. Single binary, zero runtime deps.",
+  "keywords": [
+    "json-server",
+    "rest",
+    "api",
+    "mock",
+    "crud",
+    "prototyping",
+    "backend"
+  ],
+  "license": "MIT",
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bin": {
+    "jsonserv": "bin/jsonserv.js"
+  },
+  "files": [
+    "binary/",
+    "bin/",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "bash scripts/build-binaries.sh",
+    "postinstall": "node bin/postinstall.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "os": [
+    "linux",
+    "darwin",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "preferGlobal": true
+}
