@@ -1,7 +1,7 @@
 {
   "name": "jsonserv",
-  "version": "1.0.0",
-  "description": "Instant REST API from JSON files — like json-server but in Go. Single binary, zero runtime deps.",
+  "version": "1.0.1",
+  "description": "A lightweight Go server distributed via npm",
   "keywords": [
     "json-server",
     "rest",
@@ -11,12 +11,17 @@
     "prototyping",
     "backend"
   ],
+  "main": "bin/jsonserv.js",
   "license": "MIT",
   "author": "",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/ahmed-226/jsonserv.git"
   },
+  "bugs": {
+    "url": "https://github.com/ahmed-226/jsonserv/issues"
+  },
+  "homepage": "https://github.com/ahmed-226/jsonserv#readme",
   "bin": {
     "jsonserv": "bin/jsonserv.js"
   },
