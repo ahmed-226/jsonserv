@@ -33,6 +33,7 @@ binary, no runtime dependencies.
    - [Entity configuration](#72-entity-configuration)
    - [Aliasing endpoints](#73-aliasing-endpoints)
    - [Schema](#74-schema)
+   - [Image Handling](#75-image-handling)
 8. [Team Workflow — Sharing Config](#8-team-workflow)
 9. [End-to-End Example](#9-end-to-end-example)
 
@@ -367,6 +368,88 @@ entities:
 ```
 
 Supported types: `string`, `number`, `boolean`.
+
+### 7.5 Image Handling
+
+jsonserv can automatically **compress and resize** images sent as base64 data URIs.
+When enabled, images are processed transparently on POST, PUT, and PATCH requests.
+
+#### Enabling Image Fields
+
+Add an `imageFields` map to any entity in your YAML config. Each key is a field name,
+and the value specifies compression settings:
+
+```yaml
+entities:
+  users:
+    imageFields:
+      avatar:
+        maxWidth: 256
+        maxHeight: 256
+        quality: 80
+        format: "jpeg"
+      thumbnail:
+        maxWidth: 64
+        maxHeight: 64
+        quality: 30
+        format: "png"
+```
+
+#### Options
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `maxWidth` | int | 128 | Maximum width in pixels (aspect ratio is preserved) |
+| `maxHeight` | int | 128 | Maximum height in pixels (aspect ratio is preserved) |
+| `quality` | int | 30 | JPEG quality 1-100 (ignored for PNG) |
+| `format` | string | `"jpeg"` | Output format: `"jpeg"` or `"png"` |
+
+#### How It Works
+
+1. A request arrives with a JSON body containing a field like `"avatar": "data:image/jpeg;base64,..."`
+2. jsonserv checks if that field is listed in `imageFields` for the entity
+3. The image is **decoded**, **resized** to fit within `maxWidth × maxHeight`, and **recompressed**
+4. The compressed base64 data URI replaces the original in the body
+5. The modified record is stored in `db.json`
+
+> Images that are already smaller than `maxWidth × maxHeight` are only recompressed,
+> not upscaled.
+
+#### Supported Formats
+
+- **JPEG** — output uses the `quality` setting
+- **PNG** — lossless encoding (quality is ignored)
+- Input can be any format supported by Go's `image` package (JPEG, PNG, GIF, BMP)
+
+#### Sending Images
+
+Include the image as a base64 data URI in your JSON body:
+
+```bash
+curl -X POST http://localhost:3000/users \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Mr. Meow",
+    "title": "Chief Napping Officer",
+    "bio": "Professional window sitter, amateur mouse chaser.",
+    "avatar": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+  }'
+```
+
+The response contains the **compressed** version:
+
+```json
+{
+  "id": "mr-meow-001",
+  "name": "Mr. Meow",
+  "avatar": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+}
+```
+
+#### Error Handling
+
+If compression fails (e.g. corrupted image data), the error is logged but the request
+**still succeeds** — the original value is stored unchanged.
 
 ---
 

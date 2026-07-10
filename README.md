@@ -25,6 +25,7 @@ runtime dependencies, concurrent-safe.
 - [Configuration](#configuration)
 - [Query Parameters](#query-parameters)
 - [Aliasing Endpoints](#aliasing-endpoints)
+- [Image Handling](#image-handling)
 - [Team Workflow](#team-workflow)
 - [Use Cases](#use-cases)
 - [Supported Platforms](#supported-platforms)
@@ -202,6 +203,65 @@ GET /articles      → lists posts
 GET /posts         → 404
 POST /articles     → creates a post
 ```
+
+---
+
+## Image Handling
+
+jsonserv can automatically compress and resize images when they are sent as base64-encoded
+data URIs. Enable it per field in your `db.yaml` config.
+
+### Configuration
+
+```yaml
+entities:
+  posts:
+    imageFields:
+      thumbnail:
+        maxWidth: 128
+        maxHeight: 128
+        quality: 30
+        format: "jpeg"       # "jpeg" (default) or "png"
+      avatar:
+        maxWidth: 256
+        maxHeight: 256
+        quality: 50
+        format: "png"
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `maxWidth` | 128 | Maximum width in pixels (maintains aspect ratio) |
+| `maxHeight` | 128 | Maximum height in pixels (maintains aspect ratio) |
+| `quality` | 30 | JPEG quality (1-100), ignored for PNG |
+| `format` | `jpeg` | Output format: `jpeg` or `png` |
+
+### How It Works
+
+1. Send a record with a field containing a base64 data URI (`data:image/...;base64,...`)
+2. jsonserv detects the field is configured in `imageFields`
+3. The image is decoded, resized to fit within `maxWidth` x `maxHeight`, and recompressed
+4. The compressed data URI replaces the original before saving to `db.json`
+
+Images are processed on **POST**, **PUT**, and **PATCH** requests.
+
+### Example
+
+```bash
+# Create a post with a large image — it gets compressed automatically
+curl -X POST http://localhost:3000/posts \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "title": "Hello",
+    "thumbnail": "data:image/jpeg;base64,/9j/4AAQSkZJR..."
+  }'
+```
+
+The stored record will contain the compressed version of the image.
+
+> **Note:** Only fields configured in `imageFields` are processed. Other fields containing
+> base64 data URIs are left untouched. Compression errors are logged but do not block the
+> request.
 
 ---
 

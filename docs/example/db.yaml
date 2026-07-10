@@ -1,0 +1,31 @@
+server:
+    port: 3000
+    host: 0.0.0.0
+    cors:
+        enabled: true
+        origins:
+            - '*'
+    logging: true
+entities:
+    users:
+        filters:
+            enabled: true
+        sort:
+            enabled: true
+            default_field: id
+            default_order: asc
+        paginate:
+            enabled: true
+            default_page: 1
+            default_limit: 10
+        schema:
+            age: number
+            avatar: string
+            bio: string
+            breed: string
+            favoriteFood: string
+            id: string
+            motto: string
+            name: string
+            superpower: string
+            title: string

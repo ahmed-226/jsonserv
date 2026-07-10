@@ -1,7 +1,6 @@
 /myserv
 /jsonserv
-db.yaml
-db.json
+
 
 # npm
 node_modules/
