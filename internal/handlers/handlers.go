@@ -2,10 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"myserv/internal/config"
+	img "myserv/internal/image"
 	"myserv/internal/query"
 	"myserv/internal/store"
 )
@@ -66,6 +69,7 @@ func (h *Handler) Create(entity string) http.HandlerFunc {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid JSON"})
 			return
 		}
+		h.processImageFields(entity, body)
 		item := h.store.Create(entity, body)
 		writeJSON(w, http.StatusCreated, item)
 	}
@@ -84,6 +88,7 @@ func (h *Handler) Update(entity string) http.HandlerFunc {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid JSON"})
 			return
 		}
+		h.processImageFields(entity, body)
 		item := h.store.Update(entity, idx, body)
 		writeJSON(w, http.StatusOK, item)
 	}
@@ -103,6 +108,7 @@ func (h *Handler) Patch(entity string) http.HandlerFunc {
 			return
 		}
 		delete(body, "id")
+		h.processImageFields(entity, body)
 		item := h.store.Patch(entity, idx, body)
 		writeJSON(w, http.StatusOK, item)
 	}
@@ -125,4 +131,30 @@ func writeJSON(w http.ResponseWriter, status int, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(v)
+}
+
+func (h *Handler) processImageFields(entity string, body map[string]interface{}) {
+	ecfg := h.config.EntityConfig(entity)
+	if len(ecfg.ImageFields) == 0 {
+		return
+	}
+	for fieldName, imgCfg := range ecfg.ImageFields {
+		val, ok := body[fieldName]
+		if !ok {
+			continue
+		}
+		strVal, ok := val.(string)
+		if !ok {
+			continue
+		}
+		if !strings.HasPrefix(strVal, "data:image") {
+			continue
+		}
+		compressed, err := img.CompressImage(strVal, imgCfg)
+		if err != nil {
+			log.Printf("image compress error field=%s: %v", fieldName, err)
+			continue
+		}
+		body[fieldName] = compressed
+	}
 }

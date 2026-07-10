@@ -24,11 +24,19 @@ type CorsConfig struct {
 }
 
 type EntityConfig struct {
-	Alias    string            `yaml:"alias,omitempty"`
-	Filters  FilterConfig      `yaml:"filters,omitempty"`
-	Sort     SortConfig        `yaml:"sort,omitempty"`
-	Paginate PaginateConfig    `yaml:"paginate,omitempty"`
-	Schema   map[string]string `yaml:"schema,omitempty"`
+	Alias       string                      `yaml:"alias,omitempty"`
+	Filters     FilterConfig                `yaml:"filters,omitempty"`
+	Sort        SortConfig                  `yaml:"sort,omitempty"`
+	Paginate    PaginateConfig              `yaml:"paginate,omitempty"`
+	Schema      map[string]string           `yaml:"schema,omitempty"`
+	ImageFields map[string]ImageFieldConfig `yaml:"imageFields,omitempty"`
+}
+
+type ImageFieldConfig struct {
+	MaxWidth  int    `yaml:"maxWidth,omitempty"`
+	MaxHeight int    `yaml:"maxHeight,omitempty"`
+	Quality   int    `yaml:"quality,omitempty"`
+	Format    string `yaml:"format,omitempty"`
 }
 
 type FilterConfig struct {
